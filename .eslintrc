@@ -1,0 +1,40 @@
+{
+	"parserOptions": {
+		"ecmaVersion": 6,
+		"ecmaFeatures": {
+			"experimentalObjectRestSpread": true
+		},
+		"sourceType": "module"
+	},
+	"env": {
+		"browser": true,
+		"node": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:prettier/recommended",
+		"plugin:react/recommended"
+	],
+	"rules": {
+		"prettier/prettier": "error",
+		"camelcase": "warn",
+		"curly": ["error", "all"],
+		"eqeqeq": "error",
+		"no-console": "error",
+		"no-multi-assign": "error",
+		"no-nested-ternary": "error",
+		"no-unneeded-ternary": "error",
+		"one-var": ["error", { "initialized": "never" }],
+		"spaced-comment": ["warn", "always"],
+		"comma-dangle": ["error", "always-multiline"],
+		"comma-style": ["error", "last"],
+		"semi": ["error", "never"],
+		"no-var": "warn",
+		"handle-callback-err": "warn",
+		"no-mixed-requires": "error",
+		"no-new-require": "error",
+		"no-path-concat": "error",
+		"react/jsx-indent-props": ["warn", "tab"],
+		"react/require-extension": "off"
+	}
+}
