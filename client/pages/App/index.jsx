@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import T from 'prop-types'
 import CSSModules from 'react-css-modules'
 import axios from 'axios'
 
@@ -12,22 +13,36 @@ const IMAGE_COUNT_INITIAL = 50
 const IMAGE_COUNT_UPDATE = 25
 
 class App extends Component {
+	static propTypes = {
+		styles: T.object,
+	}
+
 	state = {
 		images: [[], [], [], []],
-		heights: [0, 0, 0, 0],
 	}
 
 	fetchGifs = async () => {
+		if (this.isFetching) return
+		this.isFetching = true
+
 		try {
-			const limit = this.state.images.some(column => column.length)
+			const { images } = this.state
+			const offset = images.reduce((sum, column) => sum + column.length, 0)
+			const limit = images.some(column => !!column.length)
 				? IMAGE_COUNT_UPDATE
 				: IMAGE_COUNT_INITIAL
-			const res = await axios.get(`https://api.giphy.com/v1/gifs/trending?api_key=${process.env.GIPHY_API_KEY}&offset=${this.offset || 0}&limit=${limit}`)
+			
+			const res = await axios.get(`https://api.giphy.com/v1/gifs/trending?api_key=${process.env.GIPHY_API_KEY}&offset=${offset}&limit=${limit}`)
 
-			const width = parseInt(getComputedStyle(this.column).width.replace('px', ''))
-			const heights = this.state.heights.slice(0)
+			const width = parseInt(
+				getComputedStyle(this.$columns[0]).width.replace('px', '')
+			)
+			const heights = this.$columns.map($column =>
+				parseInt(getComputedStyle($column).height.replace('px', ''))
+			)
 			const newImages = [[], [], [], []]
 
+			// Fill shortest columns first
 			res.data.data.forEach(item => {
 				const image = item.images.fixed_height_still
 				const minHeight = Math.min(...heights)
@@ -37,41 +52,32 @@ class App extends Component {
 			})
 			
 			this.setState({
-				images: this.state.images.map((column, i) => [...column, ...newImages[i]]),
-				heights,
+				images: images.map((column, i) => [...column, ...newImages[i]]),
+			}, () => {
+				this.isFetching = false
 			})
-
-			this.offset = (this.offset || 0) + limit
 		} catch (e) {
 			console.log(e)
+			this.isFetching = false
 		}
 	}
 
 	handleWindowScroll = () => {
-		this.scrollY = window.pageYOffset ||
-			document.documentElement.scrollTop ||
-			document.body.scrollTop ||
-			0
-		
-		const scrollHeight = Math.max(
-			document.body.scrollHeight,
-			document.body.offsetHeight, 
-			document.documentElement.clientHeight,
-			document.documentElement.scrollHeight,
-			document.documentElement.offsetHeight,
-		)
+		const b = document.body
+		const d = document.documentElement
+		const scrollHeight = Math.max(b.scrollHeight, b.offsetHeight, d.clientHeight, d.scrollHeight, d.offsetHeight)
+		this.scrollY = window.pageYOffset || d.scrollTop || b.scrollTop || 0
 
 		if (!this.isTicking) {
-			requestAnimationFrame(async () => {
-				if (!this.pauseInfiniteScroll && this.scrollY > scrollHeight - window.innerHeight - SCROLL_BOTTOM_MIN) {
-					this.pauseInfiniteScroll = true
-					await this.fetchGifs()
-					this.pauseInfiniteScroll = false
+			window.requestAnimationFrame(() => {
+				if (this.scrollY > scrollHeight - window.innerHeight - SCROLL_BOTTOM_MIN) {
+					this.fetchGifs()
 				}
-				this.isTicking = false;
-			});
+				this.isTicking = false
+			})
 		}
-		this.isTicking = true;
+
+		this.isTicking = true
 	}
 
 	componentDidMount = () => {
@@ -81,38 +87,19 @@ class App extends Component {
 
 	render() {
 		const { styles } = this.props
-
+		this.$columns = this.$columns || []
 		return (
 			<div styleName="App">
 				<div styleName="content">
-					<div styleName="gif-column" ref={ref => this.column = ref}>
-						{this.state.images[0].map((item, i) =>
-							<div key={i} className={styles['gif-cell']}>
-								<GiphyGif url={item.url} />
-							</div>
-						)}
-					</div>
-					<div styleName="gif-column">
-						{this.state.images[1].map((item, i) =>
-							<div key={i} className={styles['gif-cell']}>
-								<GiphyGif url={item.url} />
-							</div>
-						)}
-					</div>
-					<div styleName="gif-column">
-						{this.state.images[2].map((item, i) =>
-							<div key={i} className={styles['gif-cell']}>
-								<GiphyGif url={item.url} />
-							</div>
-						)}
-					</div>
-					<div styleName="gif-column">
-						{this.state.images[3].map((item, i) =>
-							<div key={i} className={styles['gif-cell']}>
-								<GiphyGif url={item.url} />
-							</div>
-						)}
-					</div>
+					{[0, 1, 2, 3].map(columnIndex =>
+						<div key={columnIndex} className={styles['gif-column']} ref={ref => this.$columns[columnIndex] = ref}>
+							{this.state.images[columnIndex].map((item, cellIndex) =>
+								<div key={cellIndex} className={styles['gif-cell']}>
+									<GiphyGif url={item.url} />
+								</div>
+							)}
+						</div>
+					)}
 				</div>
 			</div>
 		)

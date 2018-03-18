@@ -5,7 +5,6 @@ html, body {
 }
 
 .App {
-	color: #fff;
 	display: block;
 }
 .content {
@@ -16,7 +15,6 @@ html, body {
 }
 .gif-column {
 	flex-basis: calc(25% - 0.75 * #{$gif-spacing});
-	min-width: 188px;
 }
 .gif-cell {
 	background-color: #333;
