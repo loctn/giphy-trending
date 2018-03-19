@@ -11,7 +11,7 @@ html, body {
 	display: flex;
 	justify-content: space-between;
 	margin: -$gif-spacing auto 0 auto;
-	max-width: 1040px;
+	max-width: $breakpoint-large;
 }
 .gif-column {
 	flex-basis: calc(25% - 0.75 * #{$gif-spacing});
@@ -20,7 +20,7 @@ html, body {
 	background-color: #333;
 	margin-top: $gif-spacing;
 }
-@media (max-width: 800px) {
+@media (max-width: $breakpoint-medium) {
 	.content {
 		flex-wrap: wrap;
 	}
@@ -28,7 +28,7 @@ html, body {
 		flex-basis: calc(50% - 0.5 * #{$gif-spacing});
 	}
 }
-@media (max-width: 500px) {
+@media (max-width: $breakpoint-small) {
 	.gif-column {
 		flex-basis: 100%;
 	}

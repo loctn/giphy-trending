@@ -1,0 +1,46 @@
+.GiphyLightbox {
+	background-color: rgba(0, 0, 0, 0.8);
+	color: #ccc;
+	font-size: 50px;
+	height: 100vh;
+	left: 0;
+	line-height: 50px;
+	position: fixed;
+	top: 0;
+	width: 100vw;
+}
+.close {
+	cursor: pointer;
+	position: absolute;
+	right: 20px;
+	text-align: center;
+	top: 20px;
+	width: 50px;
+}
+.close:before {
+	content: '×';
+}
+.frame {
+	align-items: center;
+	display: flex;
+	height: 100%;
+}
+.left, .right {
+	cursor: pointer;
+	flex: 1;
+	line-height: 100vh;
+	text-align: center;
+}
+.left:before {
+	content: '❬'
+}
+.right:before {
+	content: '❭';
+}
+.image {
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+	flex-basis: 80%;
+	height: 80%
+}

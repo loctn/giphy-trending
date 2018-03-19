@@ -4,6 +4,7 @@ import CSSModules from 'react-css-modules'
 import axios from 'axios'
 
 import GiphyGif from '~/components/GiphyGif'
+import GiphyLightbox from '~/components/GiphyLightbox'
 
 import styles from './index.scss'
 
@@ -19,6 +20,9 @@ class App extends Component {
 
 	state = {
 		images: [[], [], [], []],
+		showLightbox: false,
+		lightboxRow: 0,
+		lightboxCol: 0,
 	}
 
 	fetchGifs = async () => {
@@ -47,6 +51,7 @@ class App extends Component {
 				const image = item.images.fixed_height_still
 				const minHeight = Math.min(...heights)
 				const newIndex = heights.findIndex(h => h === minHeight)
+				image.urlLarge = item.images.original.url
 				newImages[newIndex].push(image)
 				heights[newIndex] += width * (image.height / image.width) + GIF_SPACING
 			})
@@ -80,22 +85,77 @@ class App extends Component {
 		this.isTicking = true
 	}
 
-	componentDidMount = () => {
+	handleThumbnailClick = (r, c) => {
+		this.setState({ lightboxRow: r, lightboxCol: c, showLightbox: true })
+	}
+
+	// A rough guess of horizontal next/prev gifs
+	handleLightboxNav = (direction) => {
+		const { images, lightboxRow, lightboxCol } = this.state
+		const newLightboxCol = direction === 1
+			? (lightboxCol + 1) % images.length
+			: lightboxCol ? lightboxCol - 1 : images.length - 1
+		let newLightboxRow = lightboxRow
+
+		if (
+			direction === -1 && lightboxCol === 0 ||
+			direction === 1 && lightboxCol === images.length - 1
+		) {
+			newLightboxRow = Math.max(0, Math.min(
+				images[newLightboxCol].length - 1,
+				lightboxRow + direction,
+			))
+		}
+
+		this.setState({ lightboxCol: newLightboxCol, lightboxRow: newLightboxRow })
+	}
+
+	handleLightboxClose = () => {
+		this.setState({ showLightbox: false })
+	}
+
+	handleLightboxPrev = () => {
+		this.handleLightboxNav(-1)
+	}
+
+	handleLightboxNext = () => {
+		this.handleLightboxNav(1)
+	}
+
+	componentDidMount() {
 		window.addEventListener('scroll', this.handleWindowScroll)
 		this.fetchGifs()
 	}
 
 	render() {
 		const { styles } = this.props
+		const { images, showLightbox, lightboxCol, lightboxRow } = this.state
+
+		let lightboxUrl;
+		if (images[lightboxCol] && images[lightboxCol][lightboxRow]) {
+			lightboxUrl = images[lightboxCol][lightboxRow].urlLarge
+		}
+		
 		this.$columns = this.$columns || []
+
 		return (
 			<div styleName="App">
+				{showLightbox &&
+					<GiphyLightbox
+						url={lightboxUrl}
+						onClose={this.handleLightboxClose}
+						onPrev={this.handleLightboxPrev}
+						onNext={this.handleLightboxNext}
+					/>
+				}
 				<div styleName="content">
-					{[0, 1, 2, 3].map(columnIndex =>
+					{images.map((column, columnIndex) =>
 						<div key={columnIndex} className={styles['gif-column']} ref={ref => this.$columns[columnIndex] = ref}>
 							{this.state.images[columnIndex].map((item, cellIndex) =>
 								<div key={cellIndex} className={styles['gif-cell']}>
-									<GiphyGif url={item.url} />
+									<GiphyGif url={item.url} onClick={
+										this.handleThumbnailClick.bind(this, cellIndex, columnIndex)
+									} />
 								</div>
 							)}
 						</div>
