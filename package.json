@@ -9,6 +9,7 @@
 		"build:watch": "npm run build -- -w",
 		"clean": "rm -r server/public/*",
 		"dev": "NODE_PATH=./server nodemon --debug=8081 --inspect ./server",
+		"postinstall": "npm run build",
 		"precommit": "lint-staged",
 		"start": "NODE_PATH=./server node ./server"
 	},
